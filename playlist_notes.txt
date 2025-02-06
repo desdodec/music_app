@@ -1,0 +1,36 @@
+//////////////////////sidebar playlist load create display delete//////////////////////
+
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+to make it simpler I already have some playlists in the db - to display the plalist results we use exactly the same method as we do for the main search results window but we apply this query instead:
+
+
+SELECT ts.*, p.name  -- Add columns from playlist as needed
+FROM tracks_search ts
+JOIN playlist_Tracks pt ON ts.id = pt.track_id
+JOIN playlists p ON pt.playlist_id = p.id  -- Join with the playlist table
+WHERE p.name = 'Playlist1';
+
+
+the playlist name should be attached to the particular playlist button
+
+so the first thing we do is load the playlists and create a sidebae playlist button for each playlis - don't do anything else
+
+
+"id"	"integer"	"nextval('playlists_id_seq'::regclass)"	"NO"
+"created_at"	"timestamp without time zone"	"CURRENT_TIMESTAMP"	"YES"
+"name"	"text"		"NO"
+
+
+"id"	"integer"	"nextval('playlist_tracks_id_seq'::regclass)"	"NO"
+"playlist_id"	"integer"		"YES"
+"duration"	"integer"		"YES"
+"title"	"text"		"YES"
+"library"	"text"		"YES"
+"cd_title"	"text"		"YES"
+"filename"	"text"		"YES"
+"track_id"	"text"		"NO"

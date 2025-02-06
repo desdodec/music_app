@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Music Search App</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    .container {
+      display: flex;                /* Use flexbox for layout */
+    }
+
+    .sidebar {
+      width: 250px;             /* Set a fixed width for the sidebar */
+      background-color: #f0f0f0; /* Example background color */
+      padding: 20px;             /* Add some padding */
+      overflow-y: auto;     /* add scroll to the sidebar */
+    }
+
+    .main-content {
+      flex-grow: 1;              /* Allow main content to expand */
+      padding: 20px;             /* Add some padding */
+      overflow: auto;
+    }
+
+    @media (max-width: 768px) {  /* adjust layout for smaller screens (example breakpoint) */
+        .container {
+            flex-direction: column; /* Stack sidebar on top of main content */
+        }
+        .sidebar{
+          width:100%;
+          overflow: hidden;
+        }
+    }
+
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <div class="library-section">
+        <h2>Library</h2>
+      </div>
+      <div class="playlist-section">
+        <h2>Playlists</h2>
+        <button id="createPlaylistBtn">Create Playlist</button>
+        <div id="playlists"></div>
+      </div>
+    </div>
+    <div class="main-content">
+      <h1>Music Search</h1>
+      <div class="header-controls">
+        <input type="text" id="searchBox" placeholder="Type to search..." />
+        <button id="searchButton">Search</button>
+        <button id="clearButton">Clear</button>
+        <button data-filter="all" class="filter-btn active-filter">All Tracks</button>
+        <button data-filter="vocal" class="filter-btn">Vocal</button>
+        <button data-filter="solo" class="filter-btn">Solo</button>
+        <button data-filter="instrumental" class="filter-btn">Instrumental</button>
+        <select id="dropdownColumn">
+          <option value="id">ID</option>
+          <option value="title">Title</option>
+          <option value="cd_title">CD Title</option>
+          <option value="composer">Composer</option>
+          <option value="library">Library</option>
+        </select>
+        <input type="text" id="dropdownInput" placeholder="Filter value..." />
+      </div>
+      <div id="results"></div>
+      <div class="total-records" id="totalRecords">Total Records: 0</div>
+      <div class="pagination">
+        <button id="firstPage">Go to Start</button>
+        <button id="prevPage">Previous</button>
+        <span id="pageInfo">Page 1 of 1</span>
+        <button id="nextPage">Next</button>
+        <button id="lastPage">Go to End</button>
+      </div>
+    </div>
+  </div>
+  <script src="renderer.js"></script>
+</body>
+</html>

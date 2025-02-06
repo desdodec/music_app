@@ -1,0 +1,6 @@
+# Ignore all files in the 'bin' directory
+data/
+
+
+# Ignore a specific directory (and its contents)
+node_modules/
