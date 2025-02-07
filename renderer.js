@@ -1,138 +1,108 @@
+const { ipcRenderer } = require('electron');
+
 document.addEventListener('DOMContentLoaded', () => {
-  let playlists = [{ id: 1, name: "Test Playlist 1" }, { id: 2, name: "Test Playlist 2" }]; // Initial playlists
-  let modal = null; // Modal element
+    const createPlaylistBtn = document.getElementById('createPlaylistBtn');
+    const modal = document.getElementById('playlistModal');
+    const modalConfirm = document.getElementById('modalConfirm');
+    const modalCancel = document.getElementById('modalCancel');
+    const playlistsDiv = document.getElementById('playlists');
 
-  // Function to load playlist tracks
-  function loadPlaylistTracks(playlistId) {
-      console.log("loadPlaylistTracks called with ID:", playlistId);
-      // (Add code here to send track loading request to main process)
-  }
+    let playlistNameInput = null; // Placeholder for dynamically created input
 
-  // Function to delete a playlist
-  function deletePlaylist(playlistId) {
-      playlists = playlists.filter(playlist => playlist.id !== playlistId);
-      renderPlaylists();
-  }
+    // 🚀 Show Modal
+    function showModal() {
+        console.log("🟢 Opening modal...");
+    
+        modal.classList.remove('hidden');
+    
+        // ✅ Check if input already exists, if not, create a new one
+        playlistNameInput = document.getElementById("playlistName");
+    
+        if (!playlistNameInput) {
+            console.log("🆕 Creating new input field for playlist name...");
+            const parent = document.querySelector('.modal-content');
+            playlistNameInput = document.createElement("input");
+            playlistNameInput.type = "text";
+            playlistNameInput.id = "playlistName";
+            playlistNameInput.placeholder = "Enter playlist name";
+            playlistNameInput.style.width = "100%";
+            playlistNameInput.style.padding = "8px";
+            playlistNameInput.style.marginBottom = "10px";
+            parent.insertBefore(playlistNameInput, modalConfirm);
+        }
+    
+        // ✅ Reset input value & ensure it gets focus
+        playlistNameInput.value = "";
+        setTimeout(() => {
+            playlistNameInput.focus();
+        }, 50);
+    }
+    
 
+    // 🚀 Hide Modal
+    function hideModal() {
+        console.log("🔴 Closing modal...");
+        modal.classList.add('hidden');
+    }
 
-  // Event Listener for Playlists Div
-  const playlistsDiv = document.getElementById('playlists');
-  playlistsDiv.addEventListener('click', function(event) {
-      console.log("playlistsDiv Clicked element", event.target);
+    // 🚀 Create Playlist
+    function createPlaylist() {
+        const playlistName = playlistNameInput.value.trim();
 
-      //Playlist Delegation
-      if (event.target.tagName === 'BUTTON' && event.target.hasAttribute('data-playlist-id')) {
-          const playlistId = parseInt(event.target.getAttribute('data-playlist-id'), 10);
-          console.log("Playlist button clicked (delegated)", playlistId)
-          loadPlaylistTracks(playlistId);
+        if (!playlistName) {
+            alert("Playlist name cannot be empty.");
+            return;
+        }
 
-      //Delection Delegation
+        console.log("🎵 Creating new playlist:", playlistName);
+        ipcRenderer.send('create-playlist', playlistName);
+        hideModal();
+    }
 
-      }  else if (event.target.classList.contains('delete-playlist-icon')) {
-          event.stopPropagation(); // Stop event from propagating to playlist button
+    // 🚀 Delete Playlist
+    function deletePlaylist(playlistId) {
+        console.log("🗑 Deleting playlist ID:", playlistId);
+        ipcRenderer.send('delete-playlist', playlistId);
+    }
 
-          console.log("is delete ICON" )
-          const playlistIdToDelete = parseInt(event.target.getAttribute('data-id'), 10);
+    // 🚀 Render Playlists
+    function renderPlaylists(playlists) {
+        console.log("🎶 Rendering playlists:", playlists);
+        playlistsDiv.innerHTML = '';
 
-           console.log("playlistID", playlistIdToDelete)
-          if (confirm('Are you sure you want to delete this playlist?')) {
-              deletePlaylist(playlistIdToDelete);
-          }
-      }
+        playlists.forEach(playlist => {
+            const div = document.createElement('div');
+            div.textContent = playlist.name;
+            div.style.display = "flex";
+            div.style.justifyContent = "space-between";
+            div.style.marginBottom = "10px";
 
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = "❌";
+            deleteBtn.addEventListener('click', () => deletePlaylist(playlist.id));
 
+            div.appendChild(deleteBtn);
+            playlistsDiv.appendChild(div);
+        });
+    }
 
-  });
+    // 🚀 Event Listeners
+    createPlaylistBtn.addEventListener('click', showModal);
+    modalConfirm.addEventListener('click', createPlaylist);
+    modalCancel.addEventListener('click', hideModal);
 
-  // Function to render playlists in the sidebar
-  function renderPlaylists() {
-      console.log("renderPlaylists is fired")
-      playlistsDiv.innerHTML = ''; // Clear existing playlists
+    // 🚀 Handle IPC Responses
+    ipcRenderer.on('playlists-loaded', (event, playlists) => renderPlaylists(playlists));
+    ipcRenderer.on('playlist-created', (event, newPlaylist) => {
+        console.log("✅ Playlist Created:", newPlaylist);
+        ipcRenderer.send('load-playlists'); // Refresh the list
+    });
 
-      playlists.forEach(playlist => {
-          const playlistItem = document.createElement('div'); // Container for button and delete icon
-          playlistItem.style.display = 'flex' //<= allows the delete icon to be placed to the right
-          playlistItem.style.marginBottom = '5px' //<= creates spacing between the playlist name buttons
+    ipcRenderer.on('playlist-deleted', (event, playlistId) => {
+        console.log("✅ Playlist Deleted:", playlistId);
+        ipcRenderer.send('load-playlists'); // Refresh the list
+    });
 
-          const playlistButton = document.createElement('button');
-          playlistButton.textContent = playlist.name;
-          playlistButton.setAttribute('data-playlist-id', playlist.id);
-           playlistButton.style.marginRight = '5px'; //<= adds spacing betwwen playlist name and delete button
-
-
-          const deleteIcon = document.createElement('i');
-          deleteIcon.className = 'fas fa-trash delete-playlist-icon'; // Add class for styling and identification
-          deleteIcon.setAttribute('data-id', playlist.id); // Store playlist ID in data-id attribute
-
-           playlistItem.appendChild(playlistButton);
-          playlistItem.appendChild(deleteIcon);
-          playlistsDiv.appendChild(playlistItem);
-      });
-  }
-
-  function modalClickHandler(event) {
-
-      if (event.target.id === 'modalConfirm') {
-
-          const playlistNameInput = document.getElementById("playlistName");
-
-          const playlistName = playlistNameInput.value;
-          if (playlistName.trim() !== '') {
-              const newPlaylist = { id: playlists.length + 1, name: playlistName }; //<= use inputted playlist name
-              playlists.push(newPlaylist);
-              renderPlaylists(); //<= render list view after creating playlist
-
-              modal.style.display = 'none'; // Hide, do not remove
-
-              playlistNameInput.value = ''; // Clear Input
-
-          } else {
-              alert("Playlist name cannot be empty.");
-          }
-
-      } else if (event.target.id === 'modalCancel') {
-
-          modal.style.display = 'none'; // Hide, do not remove
-
-      }
-  }
-
-
-  // Event Listener for Modal button
-  // Create Playlist Modal
-  const createPlaylistBtn = document.getElementById('createPlaylistBtn');
-  createPlaylistBtn.addEventListener('click', () => {
-      console.log("createPlaylistBtn event fired")
-      if (!modal) { //<= is modal has already been created
-
-          modal = document.createElement('div');
-          modal.id = 'playlistModal';
-          modal.className = 'modal';
-          modal.innerHTML = `
-              <div class="modal-content">
-                  <h3>Create New Playlist</h3>
-                  <input type="text" id="playlistName" placeholder="Playlist Name">
-                  <button id="modalConfirm">Create</button>
-                  <button id="modalCancel">Cancel</button>
-              </div>
-          `;
-
-          document.body.appendChild(modal);
-
-          // Attach the click handler to the single Modal element
-          modal.addEventListener('click', modalClickHandler);
-
-
-      }
-
-      // Show the modal (or re-show if already exists)
-      modal.style.display = 'block';
-
-      const playlistNameInput = document.getElementById("playlistName")
-      playlistNameInput.focus();
-
-  });
-
-
-  renderPlaylists(); // Initial rendering
+    // 🚀 Initial Load
+    ipcRenderer.send('load-playlists');
 });
