@@ -1,22 +1,319 @@
-.hidden {
+body {
+  font-family: Arial, sans-serif;
+  margin: 0; /* Remove default body margin */
+  background-color: #121212;
+  color: #FFFFFF;
+  overflow: hidden; /* Prevent double scrollbars */
+}
+
+h1 {
+  color: #1DB954;
+}
+
+.container {
+  display: flex;
+  height: 100vh; /* Use viewport height for full-screen layout */
+}
+
+.sidebar {
+  width: 250px;
+  background-color: #080808;
+  padding: 10px;
+  overflow-y: auto;
+  /* No need for fixed positioning here */
+}
+
+.main-content {
+  flex-grow: 1;
+  padding: 20px;
+  overflow-y: auto; /* Allow main content to scroll */
+}
+
+/* --- Rest of your styles (header-controls, result, etc.) --- */
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+/* ... (rest of your styles.css) ... */
+.header-controls input,
+.header-controls button,
+.header-controls select {
+  padding: 10px;
+  border-radius: 20px;
+  border: none;
+  background-color: #282828;
+  color: #FFFFFF;
+  cursor: pointer;
+}
+
+.header-controls button:hover {
+  background-color: #1DB954;
+}
+
+.filter-buttons button {
+  padding: 10px 20px;
+  background-color: #282828;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+.filter-buttons button.active-filter {
+  background-color: #1DB954;
+}
+
+.result {
+  display: flex;
+  align-items: center;
+  background-color: #181818;
+  padding: 5px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  position: relative;
+  width: 100%;
+}
+
+.album-cover {
+  width: 80px;
+  height: 80px;
+  border-radius: 5px;
+  margin-right: 10px;
+  object-fit: cover;
+}
+
+.track-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.track-title {
+  font-size: 16px;
+  font-weight: bold;
+  min-width: 150px;
+}
+
+.description {
+  max-width: 300px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  color: #B3B3B3;
+  position: relative;
+}
+
+.tooltip-box {
   display: none;
+  position: absolute;
+  background: #333;
+  color: #fff;
+  padding: 5px;
+  border-radius: 5px;
+  white-space: normal;
+  top: 100%;
+  left: 0;
+  z-index: 5;
+  width: max-content;
+  max-width: 400px;
+}
+
+.description:hover + .tooltip-box {
+  display: block;
+}
+
+.waveform {
+  position: relative;
+  height: 30px;
+  width: 300px;
+  background: #282828;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.waveform img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  border-radius: 5px;
+  z-index: 10;
+}
+
+.waveform .progress {
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 0.1s linear;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.control-btn {
+  background-color: transparent;
+  border: none;
+  color: #1DB954;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.control-btn:hover {
+  color: #1ed760;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center; /* Center horizontally */
+  align-items: center;     /* Center vertically */
+  gap: 10px;
+  margin-top: 20px;      /* Add some space above */
+}
+
+.pagination button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  background-color: #555;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.pagination button:hover {
+  background-color: #777;
+}
+
+.pagination button:disabled {
+  background-color: #333;
+  cursor: not-allowed;
+}
+
+.pagination span {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.total-records {
+  text-align: center;
+  margin-top: 10px;
+  font-weight: bold;
+}
+.sidebar {
+  width: 250px;
+  background-color: #080808;
+  padding: 10px;
+  overflow-y: auto;
+  color: #FFFFFF;
+}
+
+.playlist-section {
+  margin-top: 20px;
+}
+
+.playlist-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px;
+  border-bottom: 1px solid #282828;
+  cursor: pointer;
+}
+
+.playlist-item:hover {
+  background-color: #282828;
+}
+
+.delete-playlist-icon {
+cursor: pointer;
+}
+
+
+
+
+/* Modal Styles */
+.modal {
+display: none; /* Hidden by default */
+position: fixed;
+z-index: 10;  /* Lower z-index for the background */
+left: 0;
+top: 0;
+width: 100%;
+height: 100%;
+overflow: auto;
+background-color: rgba(0,0,0,0.4);
 }
 
 .modal-content {
-  background: white;
-  padding: 20px;
-  width: 300px;
-  margin: 100px auto;
+background-color: #282828;
+margin: 15% auto;
+padding: 20px;
+border: 1px solid #888;
+width: 30%; /* Adjust as needed */
+border-radius: 5px;
+position: relative; /*  Add this! */
+z-index: 100; /*  Higher z-index for the content */
+}
+
+.modal-content button {
+  padding: 10px 20px;
+  margin: 5px;
+  border: none;
   border-radius: 5px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  pointer-events: auto !important; /* Ensure buttons can be clicked */
 }
 
-input {
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 10px;
+.modal-content input {
+  width: 80%;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px;
+  border: none;
+  background: #121212;
+  color: #FFFFFF;
 }
 
-button {
-  margin-right: 5px;
+.modal-content button#modalConfirm {
+background-color: #1DB954;
+color: #FFFFFF;
+}
+
+.modal-content button#modalCancel {
+  background-color: #555555;
+  color: #FFFFFF;
+}
+/* Styles for smaller screens */
+@media (max-width: 768px) { /* Adjust the breakpoint as needed */
+  .container {
+      flex-direction: column; /* Stack sidebar on top of content */
+  }
+
+  .sidebar {
+      width: 100%; /* Full width on smaller screens */
+  position: static; /* Remove fixed positioning */
+  }
+ #results {
+    margin-left: 0px; /* Remove margin */
+  }
+
+  .main-content {
+      padding: 10px; /* Adjust padding for smaller screens */
+  }
+}
+
+@media (min-width: 769px) { /* Add this media query */
+  #results {
+    margin-left: 250px; /* Add space for sidebar */
+  }
 }
