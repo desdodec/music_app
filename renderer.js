@@ -3,7 +3,7 @@ const path = require('path');
 
 document.addEventListener('DOMContentLoaded', () => {
     let playlists = [];
-    let modal = null; // Keep track of the modal element
+    let modal = null;
     let currentAudio = null;
     let currentTrackId = null;
     let currentPlayButton = null;
@@ -104,7 +104,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     // --- IPC Event Handlers ---
-
     ipcRenderer.on('playlists-loaded', (event, data) => {
         playlists = data;
         renderPlaylists();
@@ -182,63 +181,48 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         console.log("Playlists rendered");
     }
-// --- Modal Logic ---
-
-function createModal() {
-    const modal = document.createElement('div');
+// --- Create Playlist Button Handler ---
+const createPlaylistBtn = document.getElementById('createPlaylistBtn');
+createPlaylistBtn.addEventListener('click', () => {
+  if (!modal) {
+    modal = document.createElement('div');
     modal.id = 'playlistModal';
     modal.className = 'modal';
     modal.innerHTML = `
-        <div class="modal-content">
-            <h3>Create New Playlist</h3>
-            <input type="text" id="playlistName" placeholder="Playlist Name">
-            <button id="modalConfirm">Create</button>
-            <button id="modalCancel">Cancel</button>
-        </div>
+      <div class="modal-content">
+        <h3>Create New Playlist</h3>
+        <input type="text" id="playlistName" placeholder="Playlist Name">
+        <button id="modalConfirm">Create</button>
+        <button id="modalCancel">Cancel</button>
+      </div>
     `;
+    document.body.appendChild(modal);
 
-    // Attach click listener using event delegation
+    // Attach click listener to modal (delegation)
     modal.addEventListener('click', (event) => {
-        if (event.target.id === 'modalConfirm') {
-            const playlistNameInput = document.getElementById("playlistName");
-            const playlistName = playlistNameInput.value.trim();
-            if (playlistName !== '') {
-                ipcRenderer.send('create-playlist', playlistName);
-                closeModal(); // Hide modal after creation
-                playlistNameInput.value = '';
-            } else {
-                alert("Playlist name cannot be empty.");
-            }
-        } else if (event.target.id === 'modalCancel') {
-            closeModal();
+      if (event.target.id === 'modalConfirm') {
+        const playlistNameInput = document.getElementById("playlistName");
+        const playlistName = playlistNameInput.value.trim();
+        if (playlistName !== '') {
+          ipcRenderer.send('create-playlist', playlistName);
+          modal.style.display = 'none';
+          playlistNameInput.value = '';
+        } else {
+          alert("Playlist name cannot be empty.");
         }
-    });
-
-    return modal;
-}
-
-function openModal() {
-    if (!modal) {
-        modal = createModal();
-        document.body.appendChild(modal);
-    }
-    modal.style.display = 'block';
-    document.getElementById("playlistName").focus();
-}
-
-function closeModal() {
-    if (modal) {
+      } else if (event.target.id === 'modalCancel') {
         modal.style.display = 'none';
-    }
-}
+      }
+    });
+  }
 
-// --- Create Playlist Button Handler ---
-const createPlaylistBtn = document.getElementById('createPlaylistBtn');
-    createPlaylistBtn.addEventListener('click', openModal);
+  modal.style.display = 'block';
+  const playlistNameInput = document.getElementById("playlistName");
+  playlistNameInput.focus();
+});
 
-    // Initial rendering
-    ipcRenderer.send('load-playlists');
-
+// Initial rendering
+ipcRenderer.send('load-playlists');
     // --- Search and Filtering ---
 
     document.getElementById('searchButton').addEventListener('click', () => {
