@@ -3,7 +3,7 @@ const path = require('path');
 
 document.addEventListener('DOMContentLoaded', () => {
     let playlists = [];
-    let modal = null;
+    let modal = null; // Keep track of the modal element
     let currentAudio = null;
     let currentTrackId = null;
     let currentPlayButton = null;
@@ -24,17 +24,16 @@ document.addEventListener('DOMContentLoaded', () => {
         ipcRenderer.send('delete-playlist', playlistId);
     }
 
-     function stopCurrentAudio() {
+    function stopCurrentAudio() {
         if (currentAudio) {
             currentAudio.pause();
             currentAudio.currentTime = 0;
             if (currentPlayButton) {
-                currentPlayButton.querySelector('i').classList.remove('fa-pause'); //select the i tag
-                currentPlayButton.querySelector('i').classList.add('fa-play');    //select the i tag
+                currentPlayButton.querySelector('i').classList.remove('fa-pause');
+                currentPlayButton.querySelector('i').classList.add('fa-play');
             }
-            // Reset waveform (if any)
             const waveformElement = document.querySelector(`.waveform[data-track-id="${currentTrackId}"] .waveform-progress`);
-            if(waveformElement) {
+            if (waveformElement) {
                 waveformElement.style.clipPath = 'inset(0 100% 0 0)';
             }
         }
@@ -104,7 +103,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
         }
     }
-
     // --- IPC Event Handlers ---
 
     ipcRenderer.on('playlists-loaded', (event, data) => {
@@ -141,8 +139,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- Playlist Rendering ---
-
-    function renderPlaylists() {
+   function renderPlaylists() {
+        console.log("renderPlaylists called. Current playlists:", playlists);
         const playlistsDiv = document.getElementById('playlists');
         if (!playlistsDiv) {
             console.error("playlistsDiv not found!"); // Debugging check
@@ -161,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
             playlistButton.style.marginRight = '5px';
 
             playlistButton.addEventListener('click', () => {
+                console.log("Playlist button clicked. Playlist ID:", playlist.id);
                 loadPlaylistTracks(playlist.id);
             });
 
@@ -170,8 +169,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             deleteIcon.addEventListener('click', (event) => {
                 event.stopPropagation();
+                console.log("Delete icon clicked. Playlist ID:", playlist.id);
                 if (confirm('Are you sure you want to delete this playlist?')) {
-                    const playlistIdToDelete = parseInt(event.target.getAttribute('data-id'), 10);
+                   const playlistIdToDelete = parseInt(event.target.getAttribute('data-id'), 10);
                     ipcRenderer.send('delete-playlist', playlistIdToDelete);
                 }
             });
@@ -180,64 +180,61 @@ document.addEventListener('DOMContentLoaded', () => {
             playlistItem.appendChild(deleteIcon);
             playlistsDiv.appendChild(playlistItem);
         });
+        console.log("Playlists rendered");
     }
+// --- Modal Logic ---
 
-    // --- Create Playlist Button Handler ---
+function createModal() {
+    const modal = document.createElement('div');
+    modal.id = 'playlistModal';
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <h3>Create New Playlist</h3>
+            <input type="text" id="playlistName" placeholder="Playlist Name">
+            <button id="modalConfirm">Create</button>
+            <button id="modalCancel">Cancel</button>
+        </div>
+    `;
 
-    const createPlaylistBtn = document.getElementById('createPlaylistBtn');
-    createPlaylistBtn.addEventListener('click', () => {
-        if (!modal) {
-            modal = document.createElement('div');
-            modal.id = 'playlistModal';
-            modal.className = 'modal';
-            modal.innerHTML = `
-                <div class="modal-content">
-                    <h3>Create New Playlist</h3>
-                    <input type="text" id="playlistName" placeholder="Playlist Name">
-                    <button id="modalConfirm">Create</button>
-                    <button id="modalCancel">Cancel</button>
-                </div>
-            `;
-            document.body.appendChild(modal);
-        }
-
-        modal.style.display = 'block';
-        const playlistNameInput = document.getElementById("playlistName");
-        playlistNameInput.focus();
-
-        // Remove previous listeners (if any) and use named functions - CRITICAL
-        const modalConfirmBtn = modal.querySelector('#modalConfirm');
-        const modalCancelBtn = modal.querySelector('#modalCancel');
-
-        // Remove any existing listeners using named functions (for clarity)
-        if (modalConfirmBtn.onclick) {
-            modalConfirmBtn.onclick = null; // Remove inline handler
-        }
-         if (modalCancelBtn.onclick) {
-            modalCancelBtn.onclick = null; // Remove inline handler
-        }
-
-        // Define named functions for the handlers
-        function confirmHandler() {
-            const playlistName = playlistNameInput.value.trim(); // Trim whitespace
+    // Attach click listener using event delegation
+    modal.addEventListener('click', (event) => {
+        if (event.target.id === 'modalConfirm') {
+            const playlistNameInput = document.getElementById("playlistName");
+            const playlistName = playlistNameInput.value.trim();
             if (playlistName !== '') {
                 ipcRenderer.send('create-playlist', playlistName);
-                modal.style.display = 'none';
+                closeModal(); // Hide modal after creation
                 playlistNameInput.value = '';
             } else {
                 alert("Playlist name cannot be empty.");
             }
+        } else if (event.target.id === 'modalCancel') {
+            closeModal();
         }
-
-        function cancelHandler() {
-            modal.style.display = 'none';
-        }
-
-        // Attach new listeners using named functions
-        modalConfirmBtn.addEventListener('click', confirmHandler);
-        modalCancelBtn.addEventListener('click', cancelHandler);
     });
 
+    return modal;
+}
+
+function openModal() {
+    if (!modal) {
+        modal = createModal();
+        document.body.appendChild(modal);
+    }
+    modal.style.display = 'block';
+    document.getElementById("playlistName").focus();
+}
+
+function closeModal() {
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// --- Create Playlist Button Handler ---
+const createPlaylistBtn = document.getElementById('createPlaylistBtn');
+    createPlaylistBtn.addEventListener('click', openModal);
 
     // Initial rendering
     ipcRenderer.send('load-playlists');
